@@ -1,3 +1,6 @@
+// Explicitly require mysql2 to ensure it's included in serverless deployment
+require("mysql2");
+
 module.exports = {
   HOST: process.env.DB_HOST,
   USER: process.env.DB_USER,
