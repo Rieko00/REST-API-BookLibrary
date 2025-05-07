@@ -4,6 +4,8 @@ info:
   description: API untuk menagement buku dan peminjaman
   version: 1.0.0
 servers:
+  - url: https://rest-api-book-library.vercel.app
+    description: Production server
   - url: http://localhost:8080
     description: Local development server
 
