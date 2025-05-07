@@ -34,6 +34,9 @@ app.get("/", (req, res) => {
 app.get("/api-docs", (req, res) => {
   res.sendFile(path.join(__dirname, "/docs/index.html"));
 });
+app.get("/swagger.yaml", (req, res) => {
+  res.sendFile(path.join(__dirname, "/docs/swagger.yaml"));
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
