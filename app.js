@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "/views/landing.html"));
+  res.sendFile(path.join(__dirname, "/Views/landing.html"));
 });
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }));
 
