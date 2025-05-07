@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
 
 const swaggerUi = require("swagger-ui-express");
 const fs = require("fs");
@@ -12,18 +13,22 @@ const db = require("./models");
 const authRoutes = require("./routes/auth.routes");
 const bookRoutes = require("./routes/book.routes");
 const peminjamanRoute = require("./routes/peminjaman.routes");
-const exp = require("constants");
 
 // Load Swagger document
-const swaggerDocument = yaml.load(fs.readFileSync("./swagger.yaml", "utf8"));
+let swaggerDocument;
+try {
+  swaggerDocument = yaml.load(fs.readFileSync(path.join(__dirname, "./swagger.yaml"), "utf8"));
+} catch (error) {
+  console.error("Error loading swagger.yaml:", error);
+  swaggerDocument = {};
+}
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  express.static("views/landing.html");
-  res.sendFile(__dirname + "/views/landing.html");
+  res.sendFile(path.join(__dirname, "/views/landing.html"));
 });
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }));
 
@@ -31,12 +36,16 @@ app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
 app.use("/api/pinjam", peminjamanRoute);
 
-const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}.`);
-  console.log(`Swagger documentation available at http://localhost:${PORT}/api-docs`);
-});
+// Setup for both local development and Vercel
+if (process.env.NODE_ENV !== "production") {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}.`);
+    console.log(`Swagger documentation available at http://localhost:${PORT}/api-docs`);
+  });
+}
 
+// Connect to database
 db.sequelize
   .sync()
   .then(() => {
@@ -45,3 +54,6 @@ db.sequelize
   .catch((err) => {
     console.error("Failed to sync database:", err.message);
   });
+
+// Export for Vercel
+module.exports = app;
