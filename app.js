@@ -30,7 +30,10 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "/Views/landing.html"));
 });
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }));
+// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }));
+app.get("/api-docs", (req, res) => {
+  res.sendFile(path.join(__dirname, "/docs/index.html"));
+});
 
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);

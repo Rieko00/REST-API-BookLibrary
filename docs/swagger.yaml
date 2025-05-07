@@ -1,0 +1,493 @@
+openapi: 3.0.0
+info:
+  title: Library Management API
+  description: API untuk menagement buku dan peminjaman
+  version: 1.0.0
+servers:
+  - url: https://rest-api-book-library.vercel.app
+    description: Production server
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User authentication operations
+  - name: Books
+    description: Operations related to book management
+  - name: Peminjaman
+    description: Operations related to peminjaman books
+
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register a new user
+      description: Create a new user account in the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegistration"
+      responses:
+        201:
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User registered successfully!
+                  user:
+                    $ref: "#/components/schemas/UserResponse"
+        400:
+          description: Validation error
+        500:
+          description: Server error
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate a user and return a token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  example: password123
+              required:
+                - username
+                - password
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/UserResponse"
+                  - type: object
+                    properties:
+                      accessToken:
+                        type: string
+        401:
+          description: Invalid credentials
+        404:
+          description: User not found
+        500:
+          description: Server error
+
+  /api/books:
+    get:
+      tags:
+        - Books
+      summary: Get all books
+      description: Retrieve a list of all books in the library
+      responses:
+        200:
+          description: A list of books
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Book"
+        500:
+          description: Server error
+
+    post:
+      tags:
+        - Books
+      summary: Add a new book
+      description: Add a new book to the library
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookInput"
+      responses:
+        201:
+          description: Book created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        400:
+          description: Validation error
+        401:
+          description: Unauthorized
+        500:
+          description: Server error
+
+  /api/books/{id}:
+    get:
+      tags:
+        - Books
+      summary: Get book by ID
+      description: Retrieve a specific book by its ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Book ID
+      responses:
+        200:
+          description: Book details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Book"
+        404:
+          description: Book not found
+        500:
+          description: Server error
+
+    put:
+      tags:
+        - Books
+      summary: Update a book
+      description: Update an existing book in the library
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Book ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BookInput"
+      responses:
+        200:
+          description: Book updated successfully
+        401:
+          description: Unauthorized
+        404:
+          description: Book not found
+        500:
+          description: Server error
+
+    delete:
+      tags:
+        - Books
+      summary: Delete a book
+      description: Delete a book from the library
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: Book ID
+      responses:
+        200:
+          description: Book deleted successfully
+        401:
+          description: Unauthorized
+        404:
+          description: Book not found
+        500:
+          description: Server error
+
+  /api/pinjam:
+    get:
+      tags:
+        - Peminjaman
+      summary: Get all peminjaman records
+      description: Retrieve a list of all book peminjaman records
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: A list of peminjaman records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Peminjaman"
+        401:
+          description: Unauthorized
+        500:
+          description: Server error
+
+    post:
+      tags:
+        - Peminjaman
+      summary: Borrow a book
+      description: Create a new peminjaman record
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeminjamanInput"
+      responses:
+        201:
+          description: Book successfully dipinjam
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Peminjaman"
+        400:
+          description: Validation error or book not available
+        401:
+          description: Unauthorized
+        500:
+          description: Server error
+
+  /api/pinjam/{id}:
+    get:
+      tags:
+        - Peminjaman
+      summary: Get peminjaman record by ID
+      description: Retrieve a specific peminjaman record by its ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: peminjaman record ID
+      responses:
+        200:
+          description: peminjaman record details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Peminjaman"
+        401:
+          description: Unauthorized
+        404:
+          description: Record not found
+        500:
+          description: Server error
+
+    put:
+      tags:
+        - Peminjaman
+      summary: Return a book
+      description: Update a peminjaman record to mark a book as returned
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: peminjaman record ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                tanggalPengembalian:
+                  type: string
+                  format: date
+                  example: "2025-05-10"
+              required:
+                - tanggalPengembalian
+      responses:
+        200:
+          description: Book returned successfully
+        401:
+          description: Unauthorized
+        404:
+          description: Record not found
+        500:
+          description: Server error
+
+components:
+  schemas:
+    UserRegistration:
+      type: object
+      properties:
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          format: email
+          example: john@example.com
+        password:
+          type: string
+          example: password123
+        fullName:
+          type: string
+          example: John Doe
+        role:
+          type: string
+          enum: [user, admin]
+          example: user
+      required:
+        - username
+        - email
+        - password
+        - fullName
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          example: john@example.com
+        fullName:
+          type: string
+          example: John Doe
+        role:
+          type: string
+          example: user
+
+    BookInput:
+      type: object
+      properties:
+        judul:
+          type: string
+          example: The Great Gatsby
+        pengarang:
+          type: string
+          example: F. Scott Fitzgerald
+        penerbit:
+          type: string
+          example: Scribner
+        tahunTerbit:
+          type: integer
+          example: 1925
+        tersedia:
+          type: boolean
+          example: true
+      required:
+        - judul
+        - pengarang
+        - penerbit
+        - tahunTerbit
+
+    Book:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        judul:
+          type: string
+          example: The Great Gatsby
+        pengarang:
+          type: string
+          example: F. Scott Fitzgerald
+        penerbit:
+          type: string
+          example: Scribner
+        tahunTerbit:
+          type: integer
+          example: 1925
+        tersedia:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    PeminjamanInput:
+      type: object
+      properties:
+        userId:
+          type: integer
+          example: 1
+        bookId:
+          type: integer
+          example: 1
+        tanggalPeminjaman:
+          type: string
+          format: date
+          example: "2025-05-07"
+        batasPengembalian:
+          type: string
+          format: date
+          example: "2025-05-14"
+      required:
+        - userId
+        - bookId
+        - tanggalPeminjaman
+        - batasPengembalian
+
+    Peminjaman:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        userId:
+          type: integer
+          example: 1
+        bookId:
+          type: integer
+          example: 1
+        tanggalPeminjaman:
+          type: string
+          format: date
+          example: "2025-05-07"
+        batasPengembalian:
+          type: string
+          format: date
+          example: "2025-05-14"
+        tanggalPengembalian:
+          type: string
+          format: date
+          nullable: true
+          example: null
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        book:
+          $ref: "#/components/schemas/Book"
+        user:
+          $ref: "#/components/schemas/UserResponse"
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
